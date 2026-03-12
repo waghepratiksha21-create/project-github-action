@@ -30,7 +30,7 @@ jobs:
         run: mvn -B package --file pom.xml
 
   security-check:
-    runs-on: ubuntu-latest runner
+    runs-on: ubuntu-latest
     needs: build
 
     steps:
