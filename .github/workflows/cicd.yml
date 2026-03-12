@@ -48,7 +48,7 @@ jobs:
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v3
 
- test:
+  test:
     runs-on: self-hosted
     needs: security-check
     steps:
@@ -62,7 +62,7 @@ jobs:
     - name: Unit Test Cases
       run: mvn test
 
-   build_project_and_sonar_scan:
+  build_project_and_sonar_scan:
     runs-on: self-hosted
     needs: test
     steps:
