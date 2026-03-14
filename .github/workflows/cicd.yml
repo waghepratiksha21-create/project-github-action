@@ -44,6 +44,11 @@ jobs:
 
       - name: Gitleaks Scan
         run: gitleaks detect --source . -r gitleaks-report.json -f json
+
+      # Upload dependency graph for Dependabot alerts
+      - name: Update dependency graph
+        uses: advanced-security/maven-dependency-submission-action@v3
+       
  
  
  Dependabot alerts this repository can receive
