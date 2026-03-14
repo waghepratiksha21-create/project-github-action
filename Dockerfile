@@ -1,13 +1,7 @@
 FROM eclipse-temurin:17-jdk-alpine
-    
-EXPOSE 8080
 
-RUN ls 
+WORKDIR /app
 
-ENV APP_HOME /usr/src/app
+COPY target/*.jar app.jar
 
-COPY app/*.jar $APP_HOME/app.jar
-
-WORKDIR $APP_HOME
-
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
