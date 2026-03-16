@@ -5,7 +5,7 @@
 # They are provided by a third-party and are governed by
 # separate terms of service, privacy policy, and support
 # documentation.
-name: CI-CD pipeline
+ name: CI-CD pipeline
 
 on:
   push:
@@ -15,7 +15,6 @@ jobs:
 
   build:
     runs-on: self-hosted
-
     steps:
       - uses: actions/checkout@v4
 
@@ -32,7 +31,6 @@ jobs:
   security-check:
     runs-on: ubuntu-latest
     needs: build
-
     steps:
       - uses: actions/checkout@v4
 
@@ -48,11 +46,9 @@ jobs:
       - name: Trivy Scan
         run: trivy fs --format table -o fs-report.json .
 
-
   test:
     runs-on: self-hosted
     needs: security-check
-
     steps:
       - uses: actions/checkout@v4
 
@@ -66,11 +62,9 @@ jobs:
       - name: Unit Test Cases
         run: mvn test
 
-
   build_project_and_sonar_scan:
     runs-on: self-hosted
     needs: test
-
     steps:
       - uses: actions/checkout@v4
 
@@ -95,47 +89,50 @@ jobs:
 
       - name: Gitleaks Scan
         run: gitleaks detect --source . -r gitleaks-report.json -f json
-        
+
       - name: SonarQube Scan
-      uses: SonarSource/sonarqube-scan-action@v5.0.0 # Ex: v4.1.0, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-        
-      - name: SonarQube Quality Gate check
-      id: sonarqube-quality-gate-check
-      uses: sonarsource/sonarqube-quality-gate-action@master
-      with:
-        pollingTimeoutSec: 600
-      env:
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
-       buils_docker_image_and_push:
-      runs-on: self-hosted
-      needs: build_project_and_sonar_scan
-    steps:
-    - uses: actions/checkout@v4
-    - name: Download JAR artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: app-jar
-        path: app  # this will download JAR to ./app folder
-        
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ vars.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Build and Push Docker image
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: true
-        tags: waghepratiksha21/bankapp:latest
-        file: ./Dockerfile
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          pollingTimeoutSec: 600
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
+  build_docker_image_and_push:
+    runs-on: self-hosted
+    needs: build_project_and_sonar_scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: app
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: waghepratiksha21/bankapp:latest
+          file: ./Dockerfile
