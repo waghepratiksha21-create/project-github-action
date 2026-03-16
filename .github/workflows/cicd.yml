@@ -96,13 +96,13 @@ jobs:
       - name: Gitleaks Scan
         run: gitleaks detect --source . -r gitleaks-report.json -f json
         
-    - name: SonarQube Scan
+      - name: SonarQube Scan
       uses: SonarSource/sonarqube-scan-action@v5.0.0 # Ex: v4.1.0, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
         
-    - name: SonarQube Quality Gate check
+      - name: SonarQube Quality Gate check
       id: sonarqube-quality-gate-check
       uses: sonarsource/sonarqube-quality-gate-action@master
       with:
@@ -111,9 +111,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
-  buils_docker_image_and_push:
-    runs-on: self-hosted
-    needs: build_project_and_sonar_scan
+       buils_docker_image_and_push:
+      runs-on: self-hosted
+      needs: build_project_and_sonar_scan
     steps:
     - uses: actions/checkout@v4
     - name: Download JAR artifact
@@ -136,6 +136,6 @@ jobs:
       with:
         context: .
         push: true
-        tags: youngminds73/bankapp:latest
+        tags: waghepratiksha21/bankapp:latest
         file: ./Dockerfile
 
