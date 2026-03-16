@@ -96,5 +96,3 @@ jobs:
       - name: Gitleaks Scan
         run: gitleaks detect --source . -r gitleaks-report.json -f json
 
-      - name: Update dependency graph
-        uses: advanced-security/maven-dependency-submission-action@v3
