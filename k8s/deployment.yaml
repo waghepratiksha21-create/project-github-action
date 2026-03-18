@@ -1,7 +1,9 @@
-piVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bankapp-deployment
+  labels:
+    app: bankapp
 spec:
   replicas: 2
   selector:
@@ -13,7 +15,14 @@ spec:
         app: bankapp
     spec:
       containers:
-      - name: bankapp
-        image: waghepratiksha21/bankapp:latest
-        ports:
-        - containerPort: 8080
+        - name: bankapp
+          image: waghepratiksha21/bankapp:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
