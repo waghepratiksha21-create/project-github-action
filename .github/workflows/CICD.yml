@@ -95,6 +95,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+        
 
       - name: Install kubectl
         run: |
@@ -104,9 +105,13 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+          aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} 
+          --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f k8s/deployment.yaml
+      - name: Debug EKS cluster
+        run: echo "Cluster name is set"
           kubectl apply -f k8s/service.yaml
