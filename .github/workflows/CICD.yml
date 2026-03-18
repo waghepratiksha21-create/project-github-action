@@ -1,7 +1,7 @@
 name: CI-CD pipeline
 
 on:
- push:
+  push:
     branches: ["main"]
 
 jobs:
@@ -12,7 +12,6 @@ jobs:
       image: maven:3.9.4-eclipse-temurin-17
     steps:
       - uses: actions/checkout@v4
-
       - name: Build JAR
         run: mvn clean package -DskipTests
 
@@ -21,7 +20,6 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Trivy
         run: |
           sudo apt-get update
@@ -30,7 +28,6 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
           sudo apt-get install trivy -y
-
       - name: Run Trivy Scan
         run: trivy fs .
 
@@ -41,7 +38,6 @@ jobs:
     needs: security-check
     steps:
       - uses: actions/checkout@v4
-
       - name: Run Unit Tests
         run: mvn clean test
 
@@ -50,13 +46,10 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Gitleaks
         run: sudo apt-get update && sudo apt-get install gitleaks -y
-
       - name: Run Gitleaks
         run: gitleaks detect --source .
-
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
@@ -68,49 +61,41 @@ jobs:
     needs: sonar-scan
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build Docker Image
+      - name: Build JAR and Docker Image
         run: |
           mvn clean package -DskipTests
           docker build -t waghepratiksha21/bankapp:latest .
-
       - name: Login DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Push Docker Image
         run: docker push waghepratiksha21/bankapp:latest
- deploy-eks:
-  runs-on: ubuntu-latest
-  needs: docker-build
-  steps:
-    - uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-
-    - name: Install kubectl
-      run: |
-        curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.27.0/bin/linux/amd64/kubectl
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
-
-    - name: Update kubeconfig
-      run: |
-        echo "EKS Cluster: ${{ secrets.EKS_CLUSTER_NAME }}"
-        aws eks update-kubeconfig \
-          --region ${{ secrets.AWS_REGION }} \
-          --name ${{ secrets.EKS_CLUSTER_NAME }}
-
-    - name: Deploy to Kubernetes
-      run: |
-        kubectl apply -f k8s/deployment.yaml
-        kubectl apply -f k8s/service.yaml
- 
-   
+  deploy-eks:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Install kubectl
+        run: |
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.27.0/bin/linux/amd64/kubectl
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+      - name: Update kubeconfig
+        run: |
+          echo "EKS Cluster: ${{ secrets.EKS_CLUSTER_NAME }}"
+          aws eks update-kubeconfig \
+            --region ${{ secrets.AWS_REGION }} \
+            --name ${{ secrets.EKS_CLUSTER_NAME }}
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
