@@ -81,23 +81,23 @@ jobs:
 
   docker-build:
     runs-on: self-hosted
-    needs: sonar-scan
-    steps:
-      - uses: actions/checkout@v4
+  needs: sonar-scan
+  steps:
+  - uses: actions/checkout@v4
 
-      - name: Login DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  - name: Build JAR
+    run: mvn clean package -DskipTests
+   - name: Login DockerHub
+     uses: docker/login-action@v3
+    with:
+    username: ${{ vars.DOCKERHUB_USERNAME }}
+    password: ${{ secrets.DOCKERHUB_TOKEN }}
+  - name: Build Docker Image
+    run: docker build -t waghepratiksha21/bankapp:latest .
+  - name: Push Docker Image
+    run: docker push waghepratiksha21/bankapp:latest
 
-      - name: Build Docker Image
-        run: docker build -t waghepratiksha21/bankapp:latest .
-
-      - name: Push Docker Image
-        run: docker push waghepratiksha21/bankapp:latest
-
-  deploy-eks:
+ deploy-eks:
     runs-on: ubuntu-latest
     needs: docker-build
     steps:
